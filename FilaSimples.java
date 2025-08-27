@@ -14,7 +14,7 @@ public class FilaSimples {
     private double[] tempoNosEstados;
     private PriorityQueue<Evento> escalonadorEventos;
 
-    private long semente = System.currentTimeMillis(); // seed
+    private long semente = System.currentTimeMillis();
     private final long a = 1664525;
     private final long c = 1013904223;
     private final long M = (long) Math.pow(2, 32);
@@ -29,7 +29,7 @@ public class FilaSimples {
         this.maxServico = maxServico;
     }
 
-    // pseudoaleatorios
+
     private double nextRandom() {
         if (numerosAleatoriosUsados >= MAX_ALEATORIOS) return -1;
         semente = (a * semente + c) % M;
@@ -37,14 +37,12 @@ public class FilaSimples {
         return (double) semente / M;
     }
 
-    // converte aleatorio para intervalo desejado
     private double gerarTempo(double min, double max) {
         double aleatorio = nextRandom();
         if (aleatorio == -1) return -1;
         return min + (max - min) * aleatorio;
     }
 
-    // metodo auxiliar para agendar um evento de saida
     private void agendarSaida() {
         double tempoServico = gerarTempo(minServico, maxServico);
         if (tempoServico != -1) {
@@ -52,7 +50,6 @@ public class FilaSimples {
         }
     }
 
-    // chegada de cliente conforme orientacao: perda se sistema cheio
     private void processarChegada() {
         if (servidoresOcupados + clientesNaFila == capacidade) {
             perdas++;
@@ -65,14 +62,12 @@ public class FilaSimples {
             }
         }
         
-        // agenda proxima chegada msm com perda
         double tempoProximaChegada = gerarTempo(minChegada, maxChegada);
         if (tempoProximaChegada != -1) {
             escalonadorEventos.add(new Evento(Evento.TipoEvento.CHEGADA, tempoGlobal + tempoProximaChegada));
         }
     }
 
-    // saida libera servidor e inicia atendimento do proximo se houver fila
     private void processarSaida() {
         servidoresOcupados--;
         if (clientesNaFila > 0) {
@@ -92,12 +87,11 @@ public class FilaSimples {
         tempoNosEstados = new double[capacidade + 1];
 
         escalonadorEventos = new PriorityQueue<>();
-        escalonadorEventos.add(new Evento(Evento.TipoEvento.CHEGADA, 2.0)); // 1o cliente
+        escalonadorEventos.add(new Evento(Evento.TipoEvento.CHEGADA, 2.0));
 
         while (numerosAleatoriosUsados < MAX_ALEATORIOS && !escalonadorEventos.isEmpty()) {
             Evento eventoAtual = escalonadorEventos.poll();
 
-            // atualiza as estatisticas do estado anterior
             double tempoDecorrido = eventoAtual.tempo - tempoGlobal;
             int estadoAtual = servidoresOcupados + clientesNaFila;
             tempoNosEstados[estadoAtual] += tempoDecorrido;
@@ -106,7 +100,7 @@ public class FilaSimples {
 
             if (eventoAtual.tipo == Evento.TipoEvento.CHEGADA) {
                 processarChegada();
-            } else { // SAIDA
+            } else {
                 processarSaida();
             }
         }
@@ -132,11 +126,12 @@ public class FilaSimples {
     public static void main(String[] args) {
         System.out.println("iniciando simulacoes...\n");
 
-        // TO DO: desmockar testes
+
         // sim. 1: G/G/1/5
         FilaSimples simulacao1 = new FilaSimples(1, 5, 2.0, 5.0, 3.0, 5.0);
         simulacao1.executar();
 
+        // sim. 2: G/G/2/5
         FilaSimples simulacao2 = new FilaSimples(2, 5, 2.0, 5.0, 3.0, 5.0);
         simulacao2.executar();
     }
