@@ -35,7 +35,7 @@ public class FilaSimples {
     private List<Double> tempoNosEstados;
     private PriorityQueue<Evento> escalonadorEventos;
 
-    private long semente = System.currentTimeMillis(); // seed
+    private long semente = System.currentTimeMillis();
     private final long a = 1664525;
     private final long c = 1013904223;
     private final long M = (long) Math.pow(2, 32);
@@ -50,7 +50,6 @@ public class FilaSimples {
         this.maxServico = maxServico;
     }
 
-    // pseudoaleatorios
     private double nextRandom() {
         if (numerosAleatoriosUsados >= MAX_ALEATORIOS) {
             return -1;
@@ -67,11 +66,9 @@ public class FilaSimples {
     }
 
     private void processarChegada() {
-        // sistema totalmente ocupado = cliente perdido
         if (servidoresOcupados + clientesNaFila == capacidade) {
             perdas++;
         } else {
-            // tenta atender o cliente de imediato
             if (servidoresOcupados < servidores) {
                 servidoresOcupados++;
                 double tempoServico = gerarTempo(minServico, maxServico);
@@ -83,7 +80,6 @@ public class FilaSimples {
             }
         }
         
-        // agenda proxima chegada msm com perda
         double tempoProximaChegada = gerarTempo(minChegada, maxChegada);
         if (tempoProximaChegada != -1) {
             escalonadorEventos.add(new Evento(Evento.TipoEvento.CHEGADA, tempoGlobal + tempoProximaChegada));
@@ -92,7 +88,6 @@ public class FilaSimples {
 
     private void processarSaida() {
         servidoresOcupados--;
-        // inicia o proximo servico se ainda tiver clientes na fila
         if (clientesNaFila > 0) {
             clientesNaFila--;
             servidoresOcupados++;
@@ -116,22 +111,20 @@ public class FilaSimples {
         }
 
         escalonadorEventos = new PriorityQueue<>();
-        escalonadorEventos.add(new Evento(Evento.TipoEvento.CHEGADA, 2.0)); // 1o cliente
+        escalonadorEventos.add(new Evento(Evento.TipoEvento.CHEGADA, 2.0));
 
         while (numerosAleatoriosUsados < MAX_ALEATORIOS && !escalonadorEventos.isEmpty()) {
             Evento eventoAtual = escalonadorEventos.poll();
 
-            // atualiza as estatisticas do estado anterior
             double tempoDecorrido = eventoAtual.tempo - tempoGlobal;
             int estadoAtual = servidoresOcupados + clientesNaFila;
             tempoNosEstados.set(estadoAtual, tempoNosEstados.get(estadoAtual) + tempoDecorrido);
 
             tempoGlobal = eventoAtual.tempo;
 
-            // novo evento
             if (eventoAtual.tipo == Evento.TipoEvento.CHEGADA) {
                 processarChegada();
-            } else { // SAIDA
+            } else { 
                 processarSaida();
             }
         }
@@ -157,7 +150,6 @@ public class FilaSimples {
     public static void main(String[] args) {
         System.out.println("iniciando simulacoes...\n");
 
-        // TO DO: desmockar testes
         // sim. 1: G/G/1/5
         FilaSimples simulacao1 = new FilaSimples(1, 5, 2.0, 5.0, 3.0, 5.0);
         simulacao1.executar();
