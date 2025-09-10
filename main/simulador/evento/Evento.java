@@ -1,10 +1,8 @@
-public class Evento implements Comparable<Evento> {
-    enum TipoEvento {
-        CHEGADA, SAIDA
-    }
+package simulador.evento;
 
-    TipoEvento tipo;
-    double tempo;
+public class Evento implements Comparable<Evento> {
+    public TipoEvento tipo;
+    public double tempo;
 
     public Evento(TipoEvento tipo, double tempo) {
         this.tipo = tipo;
