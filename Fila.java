@@ -7,6 +7,7 @@ public class Fila {
     private int capacidade;
     private double minServico;
     private double maxServico;
+    private long perdas;
 
     private int clientesNaFila;
     private int servidoresOcupados;
@@ -23,6 +24,7 @@ public class Fila {
         this.clientesNaFila = 0;
         this.servidoresOcupados = 0;
         this.rotasDeSaida = new ArrayList<>();
+        this.perdas = 0;
     }
 
     // novo metodo para configurar a rede
@@ -54,6 +56,10 @@ public class Fila {
     public void finalizarServico() {
         servidoresOcupados--;
     }
+    
+    public void registrarPerda() {
+        this.perdas++;
+    }
 
     // getters
     public int getId() { return id; }
@@ -65,4 +71,5 @@ public class Fila {
     public int getServidores() { return servidores; }
     public int getEstado() { return clientesNaFila + servidoresOcupados; }
     public List<Rota> getRotasDeSaida() { return rotasDeSaida; }
+    public long getPerdas() { return perdas; }
 }

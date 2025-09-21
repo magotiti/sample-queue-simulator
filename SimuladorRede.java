@@ -8,7 +8,6 @@ public class SimuladorRede {
 
     private double tempoGlobal;
     private List<Fila> redeDeFilas;
-    private long perdas;
     private List<double[]> tempoNosEstadosPorFila;
     private PriorityQueue<Evento> escalonadorEventos;
 
@@ -53,9 +52,16 @@ public class SimuladorRede {
     private void processarChegada(Evento evento) {
         Fila filaAtual = redeDeFilas.get(evento.filaDestino);
 
-        if (filaAtual.estaCheia()) {
-            perdas++;
-        } else {
+        if (filaAtual.getId() == 0) { 
+            double proximaChegada = gerarTempo(minChegada, maxChegada);
+            if (proximaChegada != -1) {
+                escalonadorEventos.add(new Evento(Evento.TipoEvento.CHEGADA, tempoGlobal + proximaChegada, 0));
+            }
+        }
+
+        if (filaAtual.estaCheia())
+            filaAtual.registrarPerda();
+        else {
             boolean servidorEstavaLivre = filaAtual.temServidorLivre();
             filaAtual.chegarCliente();
             if (servidorEstavaLivre) {
@@ -64,7 +70,6 @@ public class SimuladorRede {
         }
     }
 
-    // alteracao crucial para implementar a logica de rede
     private void processarSaida(Evento evento) {
         Fila filaOrigem = redeDeFilas.get(evento.filaDestino);
         filaOrigem.finalizarServico();
@@ -97,7 +102,6 @@ public class SimuladorRede {
     public void executar() {
         // inicializacao
         tempoGlobal = 0.0;
-        perdas = 0;
         numerosAleatoriosUsados = 0;
         escalonadorEventos = new PriorityQueue<>();
         
@@ -142,30 +146,37 @@ public class SimuladorRede {
                 double probabilidade = (tempo / tempoGlobal) * 100.0;
                 System.out.printf("%-9d / %-18.4f / %.2f%%\n", i, tempo, probabilidade);
             }
+            System.out.printf(" - perdas de clientes (total): %d\n", fila.getPerdas());
         }
         System.out.println("\n---------------------------------------------------");
-        System.out.printf(" - perdas de clientes (total): %d\n", perdas);
         System.out.printf(" - tempo global da simulacao: %.4f\n", tempoGlobal);
     }
 
     public static void main(String[] args) {
         System.out.println("iniciando simulacao: Rede com Roteamento...\n");
 
-        // testes
-        SimuladorRede simulacaoRede = new SimuladorRede(1.0, 3.0);
-        Fila filaTriagem = new Fila(0, 1, 5, 0.5, 1.0);
-        filaTriagem.adicionarRota(1, 0.70);
-        filaTriagem.adicionarRota(2, 0.30); 
-        simulacaoRede.adicionarFila(filaTriagem);
+        SimuladorRede simulador = new SimuladorRede(2.0, 4.0);
 
-        Fila filaAtendimentoLento = new Fila(1, 1, 5, 4.0, 8.0);
-        filaAtendimentoLento.adicionarRota(-1, 1.0);
-        simulacaoRede.adicionarFila(filaAtendimentoLento);
+        // fila 1 G/G/1/5
+        // capacidade nao informada
+        Fila fila1 = new Fila(0, 1, 5, 1.0, 2.0);
+        fila1.adicionarRota(1, 0.80);
+        fila1.adicionarRota(2, 0.20); 
+        simulador.adicionarFila(fila1);
 
-        Fila filaAtendimentoRapido = new Fila(2, 1, 5, 1.0, 2.0);
-        filaAtendimentoRapido.adicionarRota(-1, 1.0);
-        simulacaoRede.adicionarFila(filaAtendimentoRapido);
+        // fila 2 G/G/2/5
+        Fila fila2 = new Fila(1, 2, 5, 4.0, 6.0);
+        fila2.adicionarRota(2, 0.50);
+        fila2.adicionarRota(0, 0.30); 
+        fila2.adicionarRota(-1, 0.20);
+        simulador.adicionarFila(fila2);
 
-        simulacaoRede.executar();
+        // fila 3 G/G/2/10
+        Fila fila3 = new Fila(2, 2, 10, 5.0, 15.0);
+        fila3.adicionarRota(1, 0.70);  
+        fila3.adicionarRota(-1, 0.30);
+        simulador.adicionarFila(fila3);
+
+        simulador.executar();
     }
 }
