@@ -5,10 +5,12 @@ public class Evento implements Comparable<Evento> {
 
     TipoEvento tipo;
     double tempo;
+    int filaDestino; // id da fila onde o evento ocorre
 
-    public Evento(TipoEvento tipo, double tempo) {
+    public Evento(TipoEvento tipo, double tempo, int filaDestino) {
         this.tipo = tipo;
         this.tempo = tempo;
+        this.filaDestino = filaDestino;
     }
 
     @Override
