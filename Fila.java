@@ -12,7 +12,6 @@ public class Fila {
     private int clientesNaFila;
     private int servidoresOcupados;
 
-    // alteracao: cada fila agora tem sua propria lista de rotas de saida
     private List<Rota> rotasDeSaida;
 
     public Fila(int id, int servidores, int capacidade, double minServico, double maxServico) {
@@ -27,7 +26,6 @@ public class Fila {
         this.perdas = 0;
     }
 
-    // novo metodo para configurar a rede
     public void adicionarRota(int filaDestinoId, double probabilidade) {
         this.rotasDeSaida.add(new Rota(filaDestinoId, probabilidade));
     }
@@ -56,20 +54,48 @@ public class Fila {
     public void finalizarServico() {
         servidoresOcupados--;
     }
-    
+
     public void registrarPerda() {
         this.perdas++;
     }
 
-    // getters
-    public int getId() { return id; }
-    public int getClientesNaFila() { return clientesNaFila; }
-    public int getServidoresOcupados() { return servidoresOcupados; }
-    public double getMinServico() { return minServico; }
-    public double getMaxServico() { return maxServico; }
-    public int getCapacidade() { return capacidade; }
-    public int getServidores() { return servidores; }
-    public int getEstado() { return clientesNaFila + servidoresOcupados; }
-    public List<Rota> getRotasDeSaida() { return rotasDeSaida; }
-    public long getPerdas() { return perdas; }
+    public int getId() {
+        return id;
+    }
+
+    public int getClientesNaFila() {
+        return clientesNaFila;
+    }
+
+    public int getServidoresOcupados() {
+        return servidoresOcupados;
+    }
+
+    public double getMinServico() {
+        return minServico;
+    }
+
+    public double getMaxServico() {
+        return maxServico;
+    }
+
+    public int getCapacidade() {
+        return capacidade;
+    }
+
+    public int getServidores() {
+        return servidores;
+    }
+
+    public int getEstado() {
+        return clientesNaFila + servidoresOcupados;
+    }
+
+    public List<Rota> getRotasDeSaida() {
+        return rotasDeSaida;
+    }
+
+    public long getPerdas() {
+        return perdas;
+    }
 }
