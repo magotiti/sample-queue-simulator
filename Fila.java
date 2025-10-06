@@ -98,4 +98,13 @@ public class Fila {
     public long getPerdas() {
         return perdas;
     }
+    
+    public void resetarPerdas() {
+        this.perdas = 0;
+    }
+    
+    public void resetarEstado() {
+        this.clientesNaFila = 0;
+        this.servidoresOcupados = 0;
+    }
 }

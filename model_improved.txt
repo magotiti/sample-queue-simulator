@@ -1,0 +1,25 @@
+[CHEGADAS]
+# fila_entrada,min_chegada,max_chegada (em minutos)
+Fila1,1.5,3.0
+
+[FILAS]
+# nome,servidores,capacidade,min_servico,max_servico (em minutos)
+Fila1,2,8,0.8,1.5
+Fila2,3,8,3.0,5.0
+Fila3,3,15,4.0,12.0
+
+[REDE]
+# origem,destino,probabilidade
+Fila1,Fila2,0.8
+Fila1,Fila3,0.2
+Fila2,Fila1,0.3
+Fila2,Fila3,0.5
+Fila2,SAIDA,0.2
+Fila3,Fila2,0.7
+Fila3,SAIDA,0.3
+
+[CONFIG]
+# parametro,valor
+warmup,1000.0
+observacao,10000.0
+replicacoes,5
