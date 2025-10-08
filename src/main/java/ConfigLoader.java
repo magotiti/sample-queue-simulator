@@ -1,7 +1,9 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
+import org.yaml.snakeyaml.Yaml;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ConfigLoader {
@@ -11,91 +13,88 @@ public class ConfigLoader {
         Map<String, Integer> mapaNomesFilas = new HashMap<>();
         int idAtual = 0;
 
-        try (BufferedReader br = new BufferedReader(new FileReader(caminhoArquivo))) {
-            String linha;
-            String secaoAtual = "";
+        try (InputStream inputStream = new FileInputStream(caminhoArquivo)) {
+            Yaml yaml = new Yaml();
+            Map<String, Object> config = yaml.load(inputStream);
 
-            while ((linha = br.readLine()) != null) {
-                linha = linha.trim();
-                if (linha.isEmpty() || linha.startsWith("#")) {
-                    continue;
-                }
+            // Processar seção de CHEGADAS
+            List<Map<String, Object>> chegadas = (List<Map<String, Object>>) config.get("chegadas");
+            if (chegadas != null && !chegadas.isEmpty()) {
+                Map<String, Object> chegada = chegadas.get(0);
+                double minChegada = getDouble(chegada.get("min_chegada"));
+                double maxChegada = getDouble(chegada.get("max_chegada"));
+                
+                // Converter para segundos se necessário
+                minChegada = converterParaSegundos(minChegada);
+                maxChegada = converterParaSegundos(maxChegada);
+                
+                simulador = new SimuladorRede(minChegada, maxChegada);
+            }
 
-                if (linha.startsWith("[")) {
-                    secaoAtual = linha.toUpperCase();
-                    continue;
-                }
+            if (simulador == null) {
+                throw new IllegalStateException("Não foi possível criar o simulador - verifique a seção 'chegadas'");
+            }
 
-                String[] partes = linha.split(",");
+            // Processar seção de FILAS
+            List<Map<String, Object>> filas = (List<Map<String, Object>>) config.get("filas");
+            if (filas != null) {
+                for (Map<String, Object> filaConfig : filas) {
+                    String nomeFila = (String) filaConfig.get("nome");
+                    int servidores = getInt(filaConfig.get("servidores"));
+                    int capacidade = getInt(filaConfig.get("capacidade"));
+                    double minServico = getDouble(filaConfig.get("min_servico"));
+                    double maxServico = getDouble(filaConfig.get("max_servico"));
+                    
+                    // Converter tempos de serviço para segundos se necessário
+                    minServico = converterParaSegundos(minServico);
+                    maxServico = converterParaSegundos(maxServico);
 
-                switch (secaoAtual) {
-                    case "[CHEGADAS]":
-                        double minChegada = Double.parseDouble(partes[1]);
-                        double maxChegada = Double.parseDouble(partes[2]);
-                        // Converter para segundos se necessário
-                        minChegada = converterParaSegundos(minChegada);
-                        maxChegada = converterParaSegundos(maxChegada);
-                        simulador = new SimuladorRede(minChegada, maxChegada);
-                        break;
-
-                    case "[FILAS]":
-                        if (simulador == null)
-                            throw new IllegalStateException("A seção [CHEGADAS] deve vir antes de [FILAS]");
-
-                        String nomeFila = partes[0];
-                        int servidores = Integer.parseInt(partes[1]);
-                        int capacidade = Integer.parseInt(partes[2]);
-                        double minServico = Double.parseDouble(partes[3]);
-                        double maxServico = Double.parseDouble(partes[4]);
-                        
-                        // Converter tempos de serviço para segundos se necessário
-                        minServico = converterParaSegundos(minServico);
-                        maxServico = converterParaSegundos(maxServico);
-
-                        mapaNomesFilas.put(nomeFila, idAtual);
-                        Fila fila = new Fila(idAtual, servidores, capacidade, minServico, maxServico);
-                        simulador.adicionarFila(fila);
-                        idAtual++;
-                        break;
-
-                    case "[REDE]":
-                        if (simulador == null)
-                            throw new IllegalStateException("As seções [CHEGADAS] e [FILAS] devem vir antes de [REDE]");
-
-                        String origemNome = partes[0];
-                        String destinoNome = partes[1];
-                        double probabilidade = Double.parseDouble(partes[2]);
-
-                        int origemId = mapaNomesFilas.get(origemNome);
-
-                        int destinoId = mapaNomesFilas.getOrDefault(destinoNome, -1);
-
-                        simulador.getFilaPorId(origemId).adicionarRota(destinoId, probabilidade);
-                        break;
-                        
-                    case "[CONFIG]":
-                        if (simulador == null)
-                            throw new IllegalStateException("As seções [CHEGADAS] e [FILAS] devem vir antes de [CONFIG]");
-                            
-                        String parametro = partes[0].toLowerCase();
-                        double valor = Double.parseDouble(partes[1]);
-                        
-                        switch (parametro) {
-                            case "warmup":
-                                simulador.configurarWarmUp(valor);
-                                break;
-                            case "observacao":
-                                simulador.configurarTempoObservacao(valor);
-                                break;
-                            case "replicacoes":
-                                simulador.configurarReplicacoes((int) valor);
-                                break;
-                        }
-                        break;
+                    mapaNomesFilas.put(nomeFila, idAtual);
+                    Fila fila = new Fila(idAtual, servidores, capacidade, minServico, maxServico);
+                    simulador.adicionarFila(fila);
+                    idAtual++;
                 }
             }
-        } catch (IOException | NumberFormatException e) {
-            System.err.println("Erro ao ler ou processar o arquivo de configuração: " + e.getMessage());
+
+            // Processar seção de REDE
+            List<Map<String, Object>> rede = (List<Map<String, Object>>) config.get("rede");
+            if (rede != null) {
+                for (Map<String, Object> rota : rede) {
+                    String origemNome = (String) rota.get("origem");
+                    String destinoNome = (String) rota.get("destino");
+                    double probabilidade = getDouble(rota.get("probabilidade"));
+
+                    Integer origemId = mapaNomesFilas.get(origemNome);
+                    if (origemId == null) {
+                        throw new IllegalStateException("Fila origem não encontrada: " + origemNome);
+                    }
+
+                    int destinoId = mapaNomesFilas.getOrDefault(destinoNome, -1);
+
+                    simulador.getFilaPorId(origemId).adicionarRota(destinoId, probabilidade);
+                }
+            }
+
+            // Processar seção de CONFIG
+            Map<String, Object> configParams = (Map<String, Object>) config.get("config");
+            if (configParams != null) {
+                if (configParams.containsKey("warmup")) {
+                    simulador.configurarWarmUp(getDouble(configParams.get("warmup")));
+                }
+                if (configParams.containsKey("observacao")) {
+                    simulador.configurarTempoObservacao(getDouble(configParams.get("observacao")));
+                }
+                if (configParams.containsKey("replicacoes")) {
+                    simulador.configurarReplicacoes(getInt(configParams.get("replicacoes")));
+                }
+            }
+
+        } catch (IOException e) {
+            System.err.println("Erro ao ler o arquivo de configuração: " + e.getMessage());
+            return null;
+        } catch (Exception e) {
+            System.err.println("Erro ao processar o arquivo YAML: " + e.getMessage());
+            e.printStackTrace();
             return null;
         }
         return simulador;
@@ -113,5 +112,25 @@ public class ConfigLoader {
             // Assumir que está em minutos, converter para segundos
             return valor * 60.0;
         }
+    }
+    
+    /**
+     * Extrai um valor double de um Object (pode ser Integer ou Double)
+     */
+    private static double getDouble(Object value) {
+        if (value instanceof Number) {
+            return ((Number) value).doubleValue();
+        }
+        return Double.parseDouble(value.toString());
+    }
+    
+    /**
+     * Extrai um valor int de um Object (pode ser Integer ou Double)
+     */
+    private static int getInt(Object value) {
+        if (value instanceof Number) {
+            return ((Number) value).intValue();
+        }
+        return Integer.parseInt(value.toString());
     }
 }

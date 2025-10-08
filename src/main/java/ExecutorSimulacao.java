@@ -10,7 +10,7 @@ public class ExecutorSimulacao {
         // Executar cenário baseline
         System.out.println("1. EXECUTANDO CENÁRIO BASELINE");
         System.out.println("=====================================");
-        SimuladorRede simuladorBaseline = ConfigLoader.carregarModelo("config/model_baseline.txt");
+        SimuladorRede simuladorBaseline = ConfigLoader.carregarModelo("config/model_baseline.yml");
         if (simuladorBaseline != null) {
             simuladorBaseline.executar();
             simuladorBaseline.salvarResultadosCSV("outputs/baseline_summary.csv");
@@ -18,7 +18,7 @@ public class ExecutorSimulacao {
         
         System.out.println("\n\n2. EXECUTANDO CENÁRIO IMPROVED");
         System.out.println("=====================================");
-        SimuladorRede simuladorImproved = ConfigLoader.carregarModelo("config/model_improved.txt");
+        SimuladorRede simuladorImproved = ConfigLoader.carregarModelo("config/model_improved.yml");
         if (simuladorImproved != null) {
             simuladorImproved.executar();
             simuladorImproved.salvarResultadosCSV("outputs/improved_summary.csv");

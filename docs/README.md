@@ -11,16 +11,18 @@ sample-queue-simulator-1/
 │   ├── Fila.java           # Classe que representa uma fila
 │   ├── Evento.java         # Classe para eventos discretos
 │   ├── Rota.java           # Classe para rotas entre filas
-│   ├── ConfigLoader.java   # Carregador de configurações
+│   ├── ConfigLoader.java   # Carregador de configurações (YAML)
 │   ├── MetricasCalculadora.java # Cálculo das métricas
 │   └── ExecutorSimulacao.java   # Executor principal
-├── config/                  # Arquivos de configuração
-│   ├── model_baseline.txt   # Cenário baseline
-│   └── model_improved.txt  # Cenário melhorado
+├── config/                  # Arquivos de configuração (YAML)
+│   ├── model_baseline.yml   # Cenário baseline
+│   └── model_improved.yml  # Cenário melhorado
 ├── outputs/                 # Resultados da simulação
 │   ├── baseline_summary.csv
 │   ├── improved_summary.csv
 │   └── comparison.csv
+├── lib/                     # Bibliotecas (auto-gerenciadas)
+│   └── snakeyaml-2.2.jar   # Parser YAML
 ├── scripts/                 # Scripts utilitários
 │   └── run.sh             # Script de execução
 └── docs/                   # Documentação
@@ -43,42 +45,52 @@ O simulador calcula as seguintes métricas de desempenho usando as fórmulas obr
 
 ## Como Executar
 
-### Opção 1: Script automatizado
+### Opção 1: Script automatizado (Recomendado)
 ```bash
 ./scripts/run.sh
 ```
 
+O script automaticamente:
+- ✓ Baixa a biblioteca SnakeYAML (se necessário)
+- ✓ Compila o código Java
+- ✓ Executa as simulações
+- ✓ Gera os resultados em CSV
+
 ### Opção 2: Compilação manual
 ```bash
-# Compilar
-javac -d . src/main/java/*.java
+# Compilar (requer SnakeYAML no classpath)
+javac -cp ".:lib/snakeyaml-2.2.jar" -d . src/main/java/*.java
 
 # Executar
-java ExecutorSimulacao
+java -cp ".:lib/snakeyaml-2.2.jar" ExecutorSimulacao
 ```
 
-## Configuração
+## Configuração (Formato YAML)
 
-Os arquivos de configuração estão em `config/` e seguem o formato:
+Os arquivos de configuração estão em `config/` e agora usam o formato YAML para maior legibilidade:
 
-```
-[CHEGADAS]
-# fila_entrada,min_chegada,max_chegada (em minutos)
-Fila1,2.0,4.0
+```yaml
+chegadas:
+  - fila_entrada: Fila1
+    min_chegada: 2.0  # minutos
+    max_chegada: 4.0  # minutos
 
-[FILAS]
-# nome,servidores,capacidade,min_servico,max_servico (em minutos)
-Fila1,1,5,1.0,2.0
+filas:
+  - nome: Fila1
+    servidores: 1
+    capacidade: 5
+    min_servico: 1.0  # minutos
+    max_servico: 2.0  # minutos
 
-[REDE]
-# origem,destino,probabilidade
-Fila1,Fila2,0.8
+rede:
+  - origem: Fila1
+    destino: Fila2
+    probabilidade: 0.8
 
-[CONFIG]
-# parametro,valor
-warmup,1000.0
-observacao,10000.0
-replicacoes,5
+config:
+  warmup: 1000.0       # Tempo de aquecimento (minutos)
+  observacao: 10000.0  # Tempo de observação (minutos)
+  replicacoes: 5       # Número de replicações
 ```
 
 ## Resultados
@@ -97,3 +109,10 @@ Os resultados são salvos em `outputs/`:
 - ✅ Normalização das probabilidades de estado
 - ✅ Cálculo de perdas por capacidade
 - ✅ Suporte a redes complexas com múltiplas filas
+- ✅ **Configuração em YAML** (mais legível e estruturado)
+- ✅ **Gerenciamento automático de dependências** (SnakeYAML)
+
+## Dependências
+
+- **Java 8+** - Linguagem de programação
+- **SnakeYAML 2.2** - Parser YAML (baixado automaticamente pelo script)

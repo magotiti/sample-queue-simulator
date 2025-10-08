@@ -1,0 +1,20 @@
+# Arquivos compilados
+*.class
+target/
+
+# Bibliotecas externas (baixadas automaticamente)
+lib/
+
+# Arquivos de configuração antigos (formato TXT)
+*.txt
+!docs/*.txt
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# Logs
+*.log
+

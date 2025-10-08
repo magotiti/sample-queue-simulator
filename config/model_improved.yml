@@ -1,0 +1,57 @@
+chegadas:
+  - fila_entrada: Fila1
+    min_chegada: 1.5
+    max_chegada: 3.0
+
+filas:
+  - nome: Fila1
+    servidores: 2
+    capacidade: 8
+    min_servico: 0.8
+    max_servico: 1.5
+  
+  - nome: Fila2
+    servidores: 3
+    capacidade: 8
+    min_servico: 3.0
+    max_servico: 5.0
+  
+  - nome: Fila3
+    servidores: 3
+    capacidade: 15
+    min_servico: 4.0
+    max_servico: 12.0
+
+rede:
+  - origem: Fila1
+    destino: Fila2
+    probabilidade: 0.8
+  
+  - origem: Fila1
+    destino: Fila3
+    probabilidade: 0.2
+  
+  - origem: Fila2
+    destino: Fila1
+    probabilidade: 0.3
+  
+  - origem: Fila2
+    destino: Fila3
+    probabilidade: 0.5
+  
+  - origem: Fila2
+    destino: SAIDA
+    probabilidade: 0.2
+  
+  - origem: Fila3
+    destino: Fila2
+    probabilidade: 0.7
+  
+  - origem: Fila3
+    destino: SAIDA
+    probabilidade: 0.3
+
+config:
+  warmup: 1000.0
+  observacao: 10000.0
+  replicacoes: 5
